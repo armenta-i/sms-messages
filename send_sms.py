@@ -1,9 +1,11 @@
 from twilio.rest import Client # type: ignore
+from dotenv import load_dotenv # type: ignore
 import os
-from dotenv import load_dotenv
+import requests
 
+# get variables to create client
 load_dotenv()
-# Hide your sensitive information using env variables set before running script
+# Class to get all info to create client and send message
 class smsInfo:
     def __init__(self):
         self.__account_sid = os.getenv('TWILIO_ACCOUNT_SID')
@@ -25,19 +27,34 @@ class smsInfo:
     def get__recipient_phone(self):
         return self.__recipient_phone
     
-    def sendMessage(self, recipient, sender, body):
+    def sendCustomMessage(self, recipient, sender, body):
         message = self.client.messages.create(
             body = body,
             from_ = sender,
             to = recipient
         )
         return message.sid
+    
+    def sendDefaultMessage(self, body):
+        message = self.client.messages.create(
+            body = body,
+            from_ = self.__twilio_phone,
+            to = self.__recipient_phone
+        )
+        return message.sid
+
+def getQuote():
+    quote_api_url = requests.get("https://zenquotes.io/api/quotes/random")
+    data = quote_api_url.json()[0]
+    quoteMessage = "\"" + data['q'] + '\" by: ' + data['a']
+    print("Quote API reponse code: ", quote_api_url.status_code)
+    return quoteMessage
 
 if __name__ == "__main__":
-# Create object to be able to get sensitive information
+    # Create object to be able to create client
     sms = smsInfo()
-    
-    sid = sms.sendMessage('+15759155602', '+18556750732', 'Message set works')
-    print(f'Message ID: {sid}')
-
+    # Write body to send message to desire phone
+    # sid = sms.sendDefaultMessage('Good Morning')      REMOVE TO SEND MESSAGE DONT FORGET
+    # print(f'Message ID: {sid}')
+    print(getQuote())
 
