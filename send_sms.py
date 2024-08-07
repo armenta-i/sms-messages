@@ -1,10 +1,13 @@
 from twilio.rest import Client # type: ignore
 from dotenv import load_dotenv # type: ignore
 import os
-import requests
+import requests #type: ignore
 
 # get variables to create client
 load_dotenv()
+
+quote_api_url = "https://zenquotes.io/api/quotes/random"
+weather_api_url = "https://api.weatherapi.com/v1/current.json?"
 # Class to get all info to create client and send message
 class smsInfo:
     def __init__(self):
@@ -43,18 +46,56 @@ class smsInfo:
         )
         return message.sid
 
-def getQuote():
-    quote_api_url = requests.get("https://zenquotes.io/api/quotes/random")
-    data = quote_api_url.json()[0]
-    quoteMessage = "\"" + data['q'] + '\" by: ' + data['a']
-    print("Quote API reponse code: ", quote_api_url.status_code)
-    return quoteMessage
+class weatherInfo:
+    def __init__(self):
+        self.__weather_key = os.getenv('WEATHER_API_KEY')
 
+    def getWeather(self):
+        weather_response = requests.get(weather_api_url + "&q=El%20Paso&key=" + self.__weather_key)
+        
+        if(weather_response.status_code == 200):
+            # Storing all weather data to put in message
+            weather_data = weather_response.json()['current']
+            weather_farenheit = weather_data['temp_f']
+            weather_celsius = weather_data['temp_c']
+            precip_mm = weather_data['precip_mm']
+
+            # Calculate precipitation chances based of a simple model found online (Not accurate)
+            if(precip_mm <= 2):
+                chance_precipitation = '20%'
+            elif(precip_mm <= 5):
+                chance_precipitation = '50%'
+            else:
+                chance_precipitation = '80%'
+                
+            weather_message = (f'Expected temperature: F: ' + str(weather_farenheit) + ' | C: ' + str(weather_celsius) + '\n' + 
+                           'Chances of precipitation: ' + str(chance_precipitation))
+            return weather_message
+        else:
+            print("Error getting weather data", weather_response.status_code)
+
+
+def getQuote():
+    quote_response = requests.get(quote_api_url)
+
+    if(quote_response.status_code == 200):
+        data = quote_response.json()[0]
+        quoteMessage = "Quote of the day: \"" + data['q'] + '\" -' + data['a']
+        return quoteMessage
+    else:
+        print(f"Error getting quote of the day. Status code: {quote_response.status_code}")
+
+    
 if __name__ == "__main__":
-    # Create object to be able to create client
+    # Create objects to be able to create client and obtain necessary info for message
     sms = smsInfo()
+    weather = weatherInfo()
+    quote_of_day = getQuote()
+    weather_message_container = weather.getWeather()
+    message_body = quote_of_day + '\n' + weather_message_container
+    print(message_body)
+
     # Write body to send message to desire phone
-    # sid = sms.sendDefaultMessage('Good Morning')      REMOVE TO SEND MESSAGE DONT FORGET
+    sid = sms.sendDefaultMessage(message_body)
     # print(f'Message ID: {sid}')
-    print(getQuote())
 
