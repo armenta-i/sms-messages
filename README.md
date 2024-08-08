@@ -61,10 +61,10 @@ The message body will include:
 
 ### Acknowledgements
 
-- (Twilio API)[https://www.twilio.com/]
-- (Weather API)[https://www.weatherapi.com/]
-- (Google Maps API)[https://developers.google.com/maps]
-- (ZenQuotes API)[https://zenquotes.io/]
+- [Twilio API](https://www.twilio.com/)
+- [Weather API](https://www.weatherapi.com/)
+- [Google Maps API](https://developers.google.com/maps)
+- [ZenQuotes API](https://zenquotes.io/)
 
 ### License
 
