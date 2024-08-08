@@ -1,4 +1,4 @@
-import requests 
+import requests  # type: ignore
 
 quote_api_url = "https://zenquotes.io/api/quotes/random"
 
